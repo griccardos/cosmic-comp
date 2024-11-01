@@ -2969,6 +2969,17 @@ impl TilingLayout {
             geo.loc.y += outer;
             geo.size.w -= outer * 2;
             geo.size.h -= outer * 2;
+
+            //if there is only one window, we limit the size to % of the screen, and center it
+            if let Ok(ch) = tree.children(root_id) {
+                let max = 0.5;
+                if ch.count() == 0 {
+                    let max_width = (geo.size.w as f32 * max) as i32;
+                    geo.loc.x = (geo.size.w - max_width) / 2; //center
+                    geo.size.w = max_width;
+                }
+            }
+
             let mut stack = vec![geo];
 
             for node_id in tree
@@ -3104,8 +3115,11 @@ impl TilingLayout {
 
         None
     }
-    
-    pub fn popup_element_under(&self, location_f64: Point<f64, Local>) -> Option<KeyboardFocusTarget> {
+
+    pub fn popup_element_under(
+        &self,
+        location_f64: Point<f64, Local>,
+    ) -> Option<KeyboardFocusTarget> {
         let location = location_f64.to_i32_round();
 
         for (mapped, geo) in self.mapped() {
@@ -3113,18 +3127,24 @@ impl TilingLayout {
                 continue;
             }
 
-            if mapped.focus_under(
-                (location_f64 - geo.loc.to_f64()).as_logical() + mapped.geometry().loc.to_f64(),
-                WindowSurfaceType::POPUP | WindowSurfaceType::SUBSURFACE,
-            ).is_some() {
+            if mapped
+                .focus_under(
+                    (location_f64 - geo.loc.to_f64()).as_logical() + mapped.geometry().loc.to_f64(),
+                    WindowSurfaceType::POPUP | WindowSurfaceType::SUBSURFACE,
+                )
+                .is_some()
+            {
                 return Some(mapped.clone().into());
             }
         }
 
         None
     }
-    
-    pub fn toplevel_element_under(&self, location_f64: Point<f64, Local>) -> Option<KeyboardFocusTarget> {
+
+    pub fn toplevel_element_under(
+        &self,
+        location_f64: Point<f64, Local>,
+    ) -> Option<KeyboardFocusTarget> {
         let location = location_f64.to_i32_round();
 
         for (mapped, geo) in self.mapped() {
@@ -3132,10 +3152,13 @@ impl TilingLayout {
                 continue;
             }
 
-            if mapped.focus_under(
-                (location_f64 - geo.loc.to_f64()).as_logical() + mapped.geometry().loc.to_f64(),
-                WindowSurfaceType::TOPLEVEL | WindowSurfaceType::SUBSURFACE,
-            ).is_some() {
+            if mapped
+                .focus_under(
+                    (location_f64 - geo.loc.to_f64()).as_logical() + mapped.geometry().loc.to_f64(),
+                    WindowSurfaceType::TOPLEVEL | WindowSurfaceType::SUBSURFACE,
+                )
+                .is_some()
+            {
                 return Some(mapped.clone().into());
             }
         }
